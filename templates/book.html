@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Book
+{% endblock %}
+
+{% block body %}
+    <h1>Book Details</h1>
+
+    <ul>
+        <li>isbn: {{ book.isbn }}</li>
+        <li>title: {{ book.title }}</li>
+        <li>author: {{ book.author}}</li>
+        <li>year: {{ book.year }}</li>
+    </ul>
+
+    <h2>reviews</h2>
+    <ul>
+        {% for cnt,avg in review %}
+            <li>Count: {{ cnt }}</li>
+            <li>Average: {{ avg }}</li>
+        {% else %}
+            <li>No reviews</li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

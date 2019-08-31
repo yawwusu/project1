@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block body %}
+    <h1>Home</h1>
+    <a href="{{url_for('login')}}">Logout</a>
+    You have successfully entered your account.
+
+    <form action="{{ url_for('result') }}" method="post">
+
+      <div class="form-group">
+        <input class="form-control" name="search" placeholder="Search: ISBN, Title, Author, Year">
+        <!-- <select class="form-control" name="book_id">
+            {% for book in books %}
+                <option value="{{ book.id }}"><a href="{{url_for('book',book_id=book.id)}}">{{ book.title }} to {{ book.author }}</a></option>
+            {% endfor %}
+        </select> -->
+      </div>
+
+      <div class="form-group">
+          <button class="btn btn-primary">Search</button>
+      </div>
+
+    </form>
+
+{% endblock %}
