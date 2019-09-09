@@ -16,11 +16,12 @@
 
     <h2>Reviews</h2>
     <ul>
-        {% for rate,comment,book_id in review %}
-            <li>Rate: {{ rate }}</li>
-            <li>Comment: {{ comment }}</li>
+        {% for (id, rate, comment, book_id, user_id) in review %}
+            <li>
+               @User_{{ user_id }} {{ rate }} stars: {{ comment }}
+            </li>
         {% else %}
-            <li>No</li>
+            <li>No reviews available</li>
         {% endfor %}
     </ul>
 
@@ -36,7 +37,7 @@
 
 
     <h2>Submit a review</h2>
-    <form action="{{ url_for('review') }}" method="post">
+    <form action="{{ url_for('review', book_id = book.id) }}" method="post">
 
         <div class="form-group">
           <label for="rating">Rate this book</label>

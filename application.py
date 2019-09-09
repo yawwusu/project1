@@ -50,10 +50,13 @@ def home():
     password = request.form.get("password")
 
     # Check if user exists.
-    if db.execute("SELECT * FROM users WHERE name = :name AND password = :password", {"name": name, "password": password}).rowcount == 0:
+    user_id = db.execute("SELECT id FROM users WHERE name = :name AND password = :password",
+                    {"name": name, "password": password}).fetchone()
+    if user_id is None:
         return render_template("error.html", message="No account with UserName and/or Password")
 
-    books = db.execute("SELECT * FROM books").fetchall()
+    session["user_id"] = user_id[0]
+    # books = db.execute("SELECT * FROM books").fetchall()
     return render_template("home.html")
 
 
@@ -76,24 +79,31 @@ def book(book_id):
     if book is None:
         return render_template("error.html", message="No such book.")
 
+    # Get user
+    # user_id = session["user_id"]
+    # print(f"{user_id}")
+    # names = db.execute("SELECT name FROM users").fetchall()
+    # print(f"{names}")
+
     # Get all reviews.
     review = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": book_id}).fetchall()
+
     res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": KEY, "isbns": book.isbn})
     res_json = res.json()
     average = res_json["books"][0]["average_rating"]
     count = res_json["books"][0]["work_ratings_count"]
     return render_template("book.html", book=book, review=review, average=average, count=count)
 
-@app.route("/review", methods= ["POST"])
+
+@app.route("/books/<int:book_id>/review", methods= ["POST"])
 def review(book_id):
-    print("here1")
     rate = request.form.get("rate")
     comment = request.form.get("comment")
-    print("here2")
-    db.execute("INSERT INTO reviews (rate,comment,book_id) VALUES (:rate, :comment, :book_id)", {"rate": rate, "comment": comment, "book_id": book_id})
+    user_id = session["user_id"]
+    db.execute("INSERT INTO reviews (rate,comment,book_id, user_id) VALUES (:rate, :comment, :book_id, :user_id)",
+                    {"rate": rate, "comment": comment, "book_id": book_id, "user_id": user_id})
     db.commit()
-    print("here3")
-    # return render_template("review.html")
+    return render_template("review.html", book=book_id)
 
 @app.route("/api/<isbn>")
 def api(isbn):

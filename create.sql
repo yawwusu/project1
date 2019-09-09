@@ -12,9 +12,10 @@ CREATE TABLE users (
     password VARCHAR NOT NULL
 );
 
-CREATE TABLE users (
+CREATE TABLE reviews (
     id SERIAL PRIMARY KEY,
-    cnt INTEGER NOT NULL,
-    avg NUMERIC NOT NULL
+    rate INTEGER NOT NULL,
+    comment VARCHAR NOT NULL
     book_id INTEGER REFERENCES books
+    user_id INTEGER REFERENCES users
 );
