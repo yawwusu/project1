@@ -6,7 +6,7 @@
 
 {% block body %}
     <h1>Search result</h1>
-    <a href="{{url_for('login')}}">Logout</a>
+    <a href="{{ url_for('login') }}">Logout</a>
 
     <ul>
         {% for book in books %}
@@ -19,5 +19,6 @@
             <li> No match was found </li>
         {% endfor %}
     </ul>
+
 
 {% endblock %}

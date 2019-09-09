@@ -14,14 +14,47 @@
         <li>year: {{ book.year }}</li>
     </ul>
 
-    <h2>reviews</h2>
+    <h2>Reviews</h2>
     <ul>
-        {% for cnt,avg in review %}
-            <li>Count: {{ cnt }}</li>
-            <li>Average: {{ avg }}</li>
+        {% for rate,comment,book_id in review %}
+            <li>Rate: {{ rate }}</li>
+            <li>Comment: {{ comment }}</li>
         {% else %}
-            <li>No reviews</li>
+            <li>No</li>
         {% endfor %}
     </ul>
+
+    <h2>Goodread Reviews</h2>
+    <ul>
+        {% if count is not none %}
+            <li>Number of reviews : {{ count }}</li>
+            <li>Average rating: {{ average }} </li>
+        {% else %}
+            <li>No available Goodread reviews</li>
+        {% endif %}
+    </ul>
+
+
+    <h2>Submit a review</h2>
+    <form action="{{ url_for('review') }}" method="post">
+
+        <div class="form-group">
+          <label for="rating">Rate this book</label>
+          <select class="form-control" name = "rate" id="rating" placeholder="Rate this book">
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="comment">Submit a review</label>
+          <textarea class="form-control" name = "comment" id="comment" rows="3" placeholder="Write a comment"></textarea>
+        </div>
+        <div class="form-group">
+            <button class="btn btn-primary">Submit</button>
+        </div>
+    </form>
 
 {% endblock %}

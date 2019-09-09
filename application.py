@@ -1,6 +1,6 @@
 import os
-
-from flask import Flask, session, render_template, request
+import requests
+from flask import Flask, session, render_template, request, jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -20,10 +20,11 @@ Session(app)
 engine = create_engine(os.getenv("DATABASE_URL"))
 db = scoped_session(sessionmaker(bind=engine))
 
+KEY = "UNvbUVCdWC5CR6kn5lUw"
+
 @app.route("/")
 def index():
     return render_template("index.html")
-
 
 @app.route("/login")
 def login():
@@ -40,7 +41,7 @@ def success():
     return render_template("success.html")
 
 
-@app.route("/home", methods=["POST"])
+@app.route("/home", methods=["GET", "POST"])
 def home():
     """Homepage"""
 
@@ -53,14 +54,16 @@ def home():
         return render_template("error.html", message="No account with UserName and/or Password")
 
     books = db.execute("SELECT * FROM books").fetchall()
-    return render_template("home.html", books=books)
+    return render_template("home.html")
 
 
 @app.route("/result", methods=["POST"])
-def books():
+def result():
     """List all books which match search."""
-    books = db.execute("SELECT * FROM books WHERE isbn = :search OR title = :search OR author = :search OR year = :search",
-                        {"search": book_id}).fetchone()
+
+    search = request.form.get("search")
+    books = db.execute("SELECT * FROM books WHERE author = :search OR title = :search OR isbn = :search OR year = :search",
+                        {"search": search}).fetchall()
     return render_template("result.html", books=books)
 
 
@@ -74,6 +77,36 @@ def book(book_id):
         return render_template("error.html", message="No such book.")
 
     # Get all reviews.
-    review = db.execute("SELECT name FROM review WHERE book_id = :book_id",
-                            {"book_id": book_id}).fetchall()
-    return render_template("book.html", book=book, review=review)
+    review = db.execute("SELECT * FROM reviews WHERE book_id = :book_id", {"book_id": book_id}).fetchall()
+    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": KEY, "isbns": book.isbn})
+    res_json = res.json()
+    average = res_json["books"][0]["average_rating"]
+    count = res_json["books"][0]["work_ratings_count"]
+    return render_template("book.html", book=book, review=review, average=average, count=count)
+
+@app.route("/review", methods= ["POST"])
+def review(book_id):
+    print("here1")
+    rate = request.form.get("rate")
+    comment = request.form.get("comment")
+    print("here2")
+    db.execute("INSERT INTO reviews (rate,comment,book_id) VALUES (:rate, :comment, :book_id)", {"rate": rate, "comment": comment, "book_id": book_id})
+    db.commit()
+    print("here3")
+    # return render_template("review.html")
+
+@app.route("/api/<isbn>")
+def api(isbn):
+    "Return api format"
+    book = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": KEY, "isbns": isbn})
+    res_json = res.json()
+    average = res_json["books"][0]["average_rating"]
+    count = res_json["books"][0]["work_ratings_count"]
+    return jsonify({
+    "title": book.title,
+    "author": book.author,
+    "year": book.year,
+    "isbn": book.isbn,
+    "review_count": count,
+    "average_score": average})
